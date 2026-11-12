@@ -5,7 +5,7 @@ const CONFIG = {
   images: [
     'img/level1.png', 'img/level2.png', 'img/level3.png', 'img/level4.png',
     'img/level5.png', 'img/level6.png', 'img/level7.png', 'img/level8.png',
-    'img/level9.png', 'img/level10.png', 'img/level11.png'
+    'img/level9.png', 'img/level10.png'
   ],
   // 每个等级的物理半径（像素）、合成得分和无素材时的占位颜色
   radii: [15, 22, 30, 38, 48, 52, 58, 65, 73, 82, 94],
@@ -46,12 +46,20 @@ const CONFIG = {
   const resultEyebrowElement = document.getElementById('result-eyebrow');
   const resultTitleElement = document.getElementById('result-title');
   const restartButton = document.getElementById('restart-button');
+  const loadingScreen = document.getElementById('loading-screen');
+  const loadingStatus = document.getElementById('loading-status');
+  const loadingProgress = document.querySelector('.loading-progress');
+  const loadingProgressBar = document.getElementById('loading-progress-bar');
+  const loadingCount = document.getElementById('loading-count');
+  const startButton = document.getElementById('start-button');
 
   const engine = Engine.create({ enableSleeping: true });
   engine.gravity.x = CONFIG.gravity.x;
   engine.gravity.y = CONFIG.gravity.y;
   engine.gravity.scale = CONFIG.gravity.scale;
 
+  let loadedImageCount = 0;
+  let failedImageCount = 0;
   const images = CONFIG.images.map((src) => {
     const image = new Image();
     image.loaded = false;
@@ -68,6 +76,7 @@ const CONFIG = {
   let lastFrameAt = 0;
   let accumulator = 0;
   let gameOver = false;
+  let gameStarted = false;
   const mergeQueue = [];
   const dangerTimers = new Map();
 
@@ -172,7 +181,7 @@ const CONFIG = {
   }
 
   function dropFruit() {
-    if (gameOver) return;
+    if (!gameStarted || gameOver) return;
     const now = performance.now();
     if (now - lastDropAt < CONFIG.dropCooldown) return;
 
@@ -365,11 +374,13 @@ const CONFIG = {
   }
 
   function onPointerMove(event) {
+    if (!gameStarted) return;
     updatePointer(event.clientX);
   }
 
   canvas.addEventListener('pointermove', onPointerMove);
   canvas.addEventListener('pointerdown', (event) => {
+    if (!gameStarted) return;
     if (event.button !== undefined && event.button !== 0) return;
     event.preventDefault();
     updatePointer(event.clientX);
@@ -377,15 +388,55 @@ const CONFIG = {
   });
   canvas.addEventListener('contextmenu', (event) => event.preventDefault());
   window.addEventListener('keydown', (event) => {
-    if (event.code === 'Space' && !event.repeat && !gameOver) {
+    if (event.code === 'Space' && !event.repeat && gameStarted && !gameOver) {
       event.preventDefault();
       dropFruit();
     }
   });
   restartButton.addEventListener('click', restartGame);
+  startButton.addEventListener('click', () => {
+    if (startButton.disabled) return;
+    gameStarted = true;
+    loadingScreen.hidden = true;
+    canvas.focus();
+  });
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('orientationchange', resizeCanvas);
   Events.on(engine, 'collisionStart', handleCollision);
+
+  // 等所有图片请求完成后才允许开始；失败的图片会使用游戏内占位图。
+  function updateLoadingProgress(settledCount) {
+    const total = CONFIG.images.length;
+    const percent = Math.round((settledCount / total) * 100);
+    loadingProgress.setAttribute('aria-valuemax', String(total));
+    loadingProgress.setAttribute('aria-valuemax', String(total));
+    loadingProgress.setAttribute('aria-valuenow', String(settledCount));
+    loadingProgressBar.style.width = `${percent}%`;
+    loadingCount.textContent = `${settledCount} / ${total}`;
+  }
+
+  Promise.all(images.map((image) => new Promise((resolve) => {
+    const finish = (loaded) => {
+      if (loaded) loadedImageCount += 1;
+      else failedImageCount += 1;
+      resolve();
+    };
+    if (image.complete) {
+      finish(image.naturalWidth > 0);
+      return;
+    }
+    image.addEventListener('load', () => finish(true), { once: true });
+    image.addEventListener('error', () => finish(false), { once: true });
+  }).then(() => updateLoadingProgress(loadedImageCount + failedImageCount))))
+    .then(() => {
+      if (failedImageCount > 0) {
+        loadingStatus.textContent = `已加载 ${loadedImageCount} 张图片，${failedImageCount} 张无法加载，将使用占位图。`;
+      } else {
+        loadingStatus.textContent = '图片已全部加载完成，可以开始游戏啦！';
+      }
+      startButton.disabled = false;
+      startButton.textContent = '开始游戏';
+    });
 
   // 初始化并启动固定步长动画循环。
   resizeCanvas();

@@ -21,6 +21,52 @@ body {
 
 button { font: inherit; }
 
+.loading-screen {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255, 255, 255, .86), transparent 30rem),
+    rgba(246, 238, 223, .96);
+  backdrop-filter: blur(8px);
+}
+.loading-screen[hidden] { display: none; }
+
+.loading-card {
+  position: relative;
+  width: min(100%, 360px);
+  padding: 42px 30px 32px;
+  border: 1px solid rgba(255, 255, 255, .9);
+  border-radius: 28px;
+  background: #fffaf0;
+  box-shadow: 0 20px 56px rgba(89, 68, 43, .16);
+  text-align: center;
+}
+.loading-sparkle { position: absolute; top: 20px; right: 25px; color: #efb86c; font-size: 25px; }
+.loading-card h2 { margin: 0; color: #514133; font-size: 25px; letter-spacing: .06em; }
+.loading-status { min-height: 22px; margin: 12px 0 18px; color: #8c7967; font-size: 13px; }
+.loading-progress { height: 10px; overflow: hidden; border-radius: 999px; background: #eee2d0; }
+.loading-progress span { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #edb16f, #df8d59); transition: width .2s ease; }
+.loading-count { margin: 8px 0 22px; color: #a28d78; font-size: 12px; font-variant-numeric: tabular-nums; }
+#start-button {
+  width: 100%;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 14px;
+  background: #e69b68;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #cb8051;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+#start-button:not(:disabled):hover { background: #df8d59; }
+#start-button:not(:disabled):active { transform: translateY(3px); box-shadow: 0 2px 0 #cb8051; }
+#start-button:disabled { cursor: wait; opacity: .7; box-shadow: none; }
+
 .page {
   width: min(100% - 32px, 520px);
   margin: 0 auto;
