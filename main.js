@@ -2,11 +2,11 @@
 const CONFIG = {
   width: 400,
   height: 600,
-  images: [
-    'img/level1.png', 'img/level2.png', 'img/level3.png', 'img/level4.png',
-    'img/level5.png', 'img/level6.png', 'img/level7.png', 'img/level8.png',
-    'img/level9.png', 'img/level10.png'
-  ],
+ images: [
+    'img/level1.png?v=2', 'img/level2.png?v=2', 'img/level3.png?v=2', 'img/level4.png?v=2',
+    'img/level5.png?v=2', 'img/level6.png?v=2', 'img/level7.png?v=2', 'img/level8.png?v=2',
+    'img/level9.png?v=2', 'img/level10.png?v=2'
+],
   // 每个等级的物理半径（像素）、合成得分和无素材时的占位颜色
   radii: [15, 22, 30, 38, 48, 52, 58, 65, 73, 82, 94],
   scores: [1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 100],
